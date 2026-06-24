@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>해양수산부 출석체크 애플리케이션</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family:
+        "Apple Presentation",
+        "Apple SD Gothic Neo",
+        "SF Pro Display",
+        "SF Pro Text",
+        "Pretendard",
+        "Noto Sans KR",
+        Arial,
+        sans-serif;
+      background: linear-gradient(135deg, #dff3ff, #f7fbff);
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 50px auto;
+      padding: 34px;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 14px 35px rgba(15, 23, 42, 0.12);
+      border-top: 8px solid #005bac;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      margin-bottom: 30px;
+      text-align: left;
+    }
+
+    .mof-logo {
+      width: 96px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .title-area h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 800;
+      color: #003f7d;
+      letter-spacing: -0.04em;
+    }
+
+    .date {
+      margin: 8px 0 0;
+      font-size: 15px;
+      color: #64748b;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    input {
+      flex: 1;
+      padding: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #0072bc;
+      box-shadow: 0 0 0 3px rgba(0, 114, 188, 0.15);
+    }
+
+    button {
+      padding: 13px 18px;
+      border: none;
+      border-radius: 12px;
+      background: #005bac;
+      color: white;
+      font-size: 15px;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #003f7d;
+      transform: translateY(-1px);
+    }
+
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 24px;
+      padding: 18px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .summary div {
+      color: #334155;
+      font-size: 14px;
+    }
+
+    .summary strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 26px;
+      color: #005bac;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+
+    th,
+    td {
+      padding: 13px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 800;
+    }
+
+    tr:hover {
+      background: #f8fafc;
+    }
+
+    .present {
+      color: #059669;
+      font-weight: 800;
+    }
+
+    .absent {
+      color: #dc2626;
+      font-weight: 800;
+    }
+
+    .delete-btn {
+      background: #ef4444;
+      padding: 9px 13px;
+      font-size: 13px;
+    }
+
+    .delete-btn:hover {
+      background: #b91c1c;
+    }
+
+    .empty {
+      padding: 24px;
+      text-align: center;
+      color: #777;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 24px;
+      }
+
+      .header {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .mof-logo {
+        width: 84px;
+      }
+
+      .title-area h1 {
+        font-size: 27px;
+      }
+
+      .input-area {
+        flex-direction: column;
+      }
+
+      th,
+      td {
+        padding: 10px 6px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="mof-logo.png" alt="해양수산부 마크" class="mof-logo" />
+
+      <div class="title-area">
+        <h1>출석체크</h1>
+        <p class="date" id="today"></p>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="nameInput" placeholder="이름을 입력하세요" />
+      <button onclick="addStudent()">학생 추가</button>
+    </div>
+
+    <div class="summary">
+      <div>
+        전체 인원
+        <strong id="totalCount">0</strong>
+      </div>
+      <div>
+        출석
+        <strong id="presentCount">0</strong>
+      </div>
+      <div>
+        결석
+        <strong id="absentCount">0</strong>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>번호</th>
+          <th>이름</th>
+          <th>상태</th>
+          <th>출석 변경</th>
+          <th>삭제</th>
+        </tr>
+      </thead>
+      <tbody id="studentTable">
+        <tr>
+          <td colspan="5" class="empty">아직 등록된 학생이 없습니다.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const students = [];
+
+    const todayElement = document.getElementById("today");
+    const nameInput = document.getElementById("nameInput");
+    const studentTable = document.getElementById("studentTable");
+    const totalCount = document.getElementById("totalCount");
+    const presentCount = document.getElementById("presentCount");
+    const absentCount = document.getElementById("absentCount");
+
+    const today = new Date();
+
+    todayElement.textContent = today.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long"
+    });
+
+    function addStudent() {
+      const name = nameInput.value.trim();
+
+      if (name === "") {
+        alert("이름을 입력해주세요.");
+        return;
+      }
+
+      const student = {
+        id: Date.now(),
+        name: name,
+        isPresent: false
+      };
+
+      students.push(student);
+      nameInput.value = "";
+      renderTable();
+    }
+
+    function toggleAttendance(id) {
+      const student = students.find(student => student.id === id);
+
+      if (student) {
+        student.isPresent = !student.isPresent;
+      }
+
+      renderTable();
+    }
+
+    function deleteStudent(id) {
+      const index = students.findIndex(student => student.id === id);
+
+      if (index !== -1) {
+        students.splice(index, 1);
+      }
+
+      renderTable();
+    }
+
+    function renderTable() {
+      studentTable.innerHTML = "";
+
+      if (students.length === 0) {
+        studentTable.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty">아직 등록된 학생이 없습니다.</td>
+          </tr>
+        `;
+      } else {
+        students.forEach((student, index) => {
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${student.name}</td>
+            <td class="${student.isPresent ? "present" : "absent"}">
+              ${student.isPresent ? "출석" : "결석"}
+            </td>
+            <td>
+              <button onclick="toggleAttendance(${student.id})">
+                ${student.isPresent ? "결석 처리" : "출석 처리"}
+              </button>
+            </td>
+            <td>
+              <button class="delete-btn" onclick="deleteStudent(${student.id})">
+                삭제
+              </button>
+            </td>
+          `;
+
+          studentTable.appendChild(row);
+        });
+      }
+
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const present = students.filter(student => student.isPresent).length;
+      const absent = students.length - present;
+
+      totalCount.textContent = students.length;
+      presentCount.textContent = present;
+      absentCount.textContent = absent;
+    }
+
+    nameInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        addStudent();
+      }
+    });
+  </script>
+</body>
+</html>
