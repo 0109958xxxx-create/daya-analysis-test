@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>스케줄 관리표</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
+      background: #ffe4ec;
+      color: #000000;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 28px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 22px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      color: #000000;
+    }
+
+    .month-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .month-title {
+      min-width: 180px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #000000;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 9px 12px;
+      background: #ff8fb1;
+      color: #000000;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: #ff6f9f;
+    }
+
+    .calendar-wrapper {
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 22px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .weekdays,
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .weekdays {
+      margin-bottom: 8px;
+    }
+
+    .weekday {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffd1df;
+      border-radius: 12px;
+      font-weight: bold;
+      color: #000000;
+      text-align: center;
+    }
+
+    .weekday.sunday {
+      background: #ffc0d4;
+    }
+
+    .weekday.saturday {
+      background: #f8c7ff;
+    }
+
+    .day {
+      min-height: 165px;
+      padding: 10px;
+      background: #fff7fa;
+      border: 1px solid #ffc0d2;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .day.empty {
+      background: #fff0f5;
+      border: 1px dashed #ffd1df;
+    }
+
+    .date-number {
+      width: 28px;
+      height: 28px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: bold;
+      border-radius: 50%;
+      color: #000000;
+    }
+
+    .today .date-number {
+      background: #ff6f9f;
+      color: #000000;
+    }
+
+    .todo-input-area {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .todo-input {
+      flex: 1;
+      min-width: 0;
+      padding: 7px;
+      border: 1px solid #ffc0d2;
+      border-radius: 9px;
+      font-size: 12px;
+      color: #000000;
+      outline: none;
+    }
+
+    .todo-input:focus {
+      border-color: #ff6f9f;
+    }
+
+    .add-btn {
+      padding: 7px 8px;
+      font-size: 12px;
+      border-radius: 9px;
+    }
+
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      overflow-y: auto;
+      max-height: 80px;
+      padding-right: 2px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px;
+      background: #ffffff;
+      border: 1px solid #ffe0e9;
+      border-radius: 9px;
+      font-size: 12px;
+      color: #000000;
+    }
+
+    .todo-item input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: #ff6f9f;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .todo-text {
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+      color: #000000;
+    }
+
+    .todo-text.done {
+      text-decoration: line-through;
+      color: #555555;
+    }
+
+    .delete-btn {
+      flex-shrink: 0;
+      background: #ffb3c7;
+      padding: 4px 6px;
+      border-radius: 7px;
+      font-size: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        padding: 18px;
+      }
+
+      header {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .calendar-wrapper {
+        overflow-x: auto;
+      }
+
+      .weekdays,
+      .calendar {
+        min-width: 850px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>스케줄 관리표</h1>
+
+      <div class="month-control">
+        <button onclick="changeMonth(-1)">이전 달</button>
+        <div class="month-title" id="monthTitle"></div>
+        <button onclick="changeMonth(1)">다음 달</button>
+      </div>
+    </header>
+
+    <main class="calendar-wrapper">
+      <section class="weekdays">
+        <div class="weekday sunday">일</div>
+        <div class="weekday">월</div>
+        <div class="weekday">화</div>
+        <div class="weekday">수</div>
+        <div class="weekday">목</div>
+        <div class="weekday">금</div>
+        <div class="weekday saturday">토</div>
+      </section>
+
+      <section class="calendar" id="calendar"></section>
+    </main>
+  </div>
+
+  <script>
+    let currentDate = new Date();
+    let schedules = {};
+
+    const monthTitle = document.getElementById("monthTitle");
+    const calendar = document.getElementById("calendar");
+
+    function renderCalendar() {
+      calendar.innerHTML = "";
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      monthTitle.textContent = `${year}년 ${month + 1}월`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement("div");
+        emptyCell.className = "day empty";
+        calendar.appendChild(emptyCell);
+      }
+
+      for (let date = 1; date <= lastDate; date++) {
+        const dateKey = makeDateKey(year, month, date);
+        const dayCell = document.createElement("div");
+        dayCell.className = "day";
+
+        if (isToday(year, month, date)) {
+          dayCell.classList.add("today");
+        }
+
+        dayCell.innerHTML = `
+          <div class="date-number">${date}</div>
+
+          <div class="todo-input-area">
+            <input
+              type="text"
+              class="todo-input"
+              id="input-${dateKey}"
+              placeholder="할 일"
+              onkeydown="handleEnter(event, '${dateKey}')"
+            />
+            <button class="add-btn" onclick="addTodo('${dateKey}')">추가</button>
+          </div>
+
+          <div class="todo-list" id="list-${dateKey}"></div>
+        `;
+
+        calendar.appendChild(dayCell);
+        renderTodos(dateKey);
+      }
+
+      const totalCells = firstDay + lastDate;
+      const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+
+      for (let i = 0; i < remainingCells; i++) {
+        const emptyCell = document.createElement("div");
+        emptyCell.className = "day empty";
+        calendar.appendChild(emptyCell);
+      }
+    }
+
+    function makeDateKey(year, month, date) {
+      const monthText = String(month + 1).padStart(2, "0");
+      const dateText = String(date).padStart(2, "0");
+
+      return `${year}-${monthText}-${dateText}`;
+    }
+
+    function isToday(year, month, date) {
+      const today = new Date();
+
+      return (
+        today.getFullYear() === year &&
+        today.getMonth() === month &&
+        today.getDate() === date
+      );
+    }
+
+    function addTodo(dateKey) {
+      const input = document.getElementById(`input-${dateKey}`);
+      const text = input.value.trim();
+
+      if (text === "") {
+        alert("할 일을 입력해주세요.");
+        return;
+      }
+
+      if (!schedules[dateKey]) {
+        schedules[dateKey] = [];
+      }
+
+      schedules[dateKey].push({
+        text: text,
+        done: false
+      });
+
+      input.value = "";
+      renderTodos(dateKey);
+    }
+
+    function renderTodos(dateKey) {
+      const list = document.getElementById(`list-${dateKey}`);
+
+      if (!list) return;
+
+      list.innerHTML = "";
+
+      const todos = schedules[dateKey] || [];
+
+      todos.forEach((todo, index) => {
+        const item = document.createElement("div");
+        item.className = "todo-item";
+
+        item.innerHTML = `
+          <input
+            type="checkbox"
+            ${todo.done ? "checked" : ""}
+            onchange="toggleTodo('${dateKey}', ${index})"
+          />
+
+          <span class="todo-text ${todo.done ? "done" : ""}">
+            ${escapeHtml(todo.text)}
+          </span>
+
+          <button class="delete-btn" onclick="deleteTodo('${dateKey}', ${index})">
+            삭제
+          </button>
+        `;
+
+        list.appendChild(item);
+      });
+    }
+
+    function toggleTodo(dateKey, index) {
+      schedules[dateKey][index].done = !schedules[dateKey][index].done;
+      renderTodos(dateKey);
+    }
+
+    function deleteTodo(dateKey, index) {
+      schedules[dateKey].splice(index, 1);
+      renderTodos(dateKey);
+    }
+
+    function changeMonth(direction) {
+      currentDate.setMonth(currentDate.getMonth() + direction);
+      renderCalendar();
+    }
+
+    function handleEnter(event, dateKey) {
+      if (event.key === "Enter") {
+        addTodo(dateKey);
+      }
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    renderCalendar();
+  </script>
+</body>
+</html>
