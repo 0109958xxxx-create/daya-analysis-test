@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>출석체크 애플리케이션</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 50px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .date {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      background: #eef2ff;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .summary strong {
+      display: block;
+      font-size: 22px;
+      margin-top: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: center;
+    }
+
+    th {
+      background: #f9fafb;
+    }
+
+    .present {
+      color: #16a34a;
+      font-weight: bold;
+    }
+
+    .absent {
+      color: #dc2626;
+      font-weight: bold;
+    }
+
+    .delete-btn {
+      background: #ef4444;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .delete-btn:hover {
+      background: #dc2626;
+    }
+
+    .empty {
+      text-align: center;
+      color: #777;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>출석체크</h1>
+    <p class="date" id="today"></p>
+
+    <div class="input-area">
+      <input type="text" id="nameInput" placeholder="이름을 입력하세요" />
+      <button onclick="addStudent()">학생 추가</button>
+    </div>
+
+    <div class="summary">
+      <div>
+        전체 인원
+        <strong id="totalCount">0</strong>
+      </div>
+      <div>
+        출석
+        <strong id="presentCount">0</strong>
+      </div>
+      <div>
+        결석
+        <strong id="absentCount">0</strong>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>번호</th>
+          <th>이름</th>
+          <th>상태</th>
+          <th>출석 변경</th>
+          <th>삭제</th>
+        </tr>
+      </thead>
+      <tbody id="studentTable">
+        <tr>
+          <td colspan="5" class="empty">아직 등록된 학생이 없습니다.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const students = [];
+
+    const todayElement = document.getElementById("today");
+    const nameInput = document.getElementById("nameInput");
+    const studentTable = document.getElementById("studentTable");
+    const totalCount = document.getElementById("totalCount");
+    const presentCount = document.getElementById("presentCount");
+    const absentCount = document.getElementById("absentCount");
+
+    const today = new Date();
+    todayElement.textContent = today.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long"
+    });
+
+    function addStudent() {
+      const name = nameInput.value.trim();
+
+      if (name === "") {
+        alert("이름을 입력해주세요.");
+        return;
+      }
+
+      const student = {
+        id: Date.now(),
+        name: name,
+        isPresent: false
+      };
+
+      students.push(student);
+      nameInput.value = "";
+      renderTable();
+    }
+
+    function toggleAttendance(id) {
+      const student = students.find(student => student.id === id);
+
+      if (student) {
+        student.isPresent = !student.isPresent;
+      }
+
+      renderTable();
+    }
+
+    function deleteStudent(id) {
+      const index = students.findIndex(student => student.id === id);
+
+      if (index !== -1) {
+        students.splice(index, 1);
+      }
+
+      renderTable();
+    }
+
+    function renderTable() {
+      studentTable.innerHTML = "";
+
+      if (students.length === 0) {
+        studentTable.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty">아직 등록된 학생이 없습니다.</td>
+          </tr>
+        `;
+      } else {
+        students.forEach((student, index) => {
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${student.name}</td>
+            <td class="${student.isPresent ? "present" : "absent"}">
+              ${student.isPresent ? "출석" : "결석"}
+            </td>
+            <td>
+              <button onclick="toggleAttendance(${student.id})">
+                ${student.isPresent ? "결석 처리" : "출석 처리"}
+              </button>
+            </td>
+            <td>
+              <button class="delete-btn" onclick="deleteStudent(${student.id})">
+                삭제
+              </button>
+            </td>
+          `;
+
+          studentTable.appendChild(row);
+        });
+      }
+
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const present = students.filter(student => student.isPresent).length;
+      const absent = students.length - present;
+
+      totalCount.textContent = students.length;
+      presentCount.textContent = present;
+      absentCount.textContent = absent;
+    }
+
+    nameInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        addStudent();
+      }
+    });
+  </script>
+</body>
+</html>
